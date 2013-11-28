@@ -181,15 +181,15 @@ void loop(){
       writeToLogger(Gcounter);// prints out to the logger the appropiate information
 
       //flash the led so we know it's recording
-      delay(100);
+      delay(50);
       digitalWrite(outPutLed, HIGH);    
-      delay(100);
+      delay(50);
       digitalWrite(outPutLed, LOW);    
-      delay(100);
+      delay(50);
       digitalWrite(outPutLed, HIGH);    
-      delay(100);
+      delay(50);
       digitalWrite(outPutLed, LOW); 
-      delay(100);      
+      delay(50);      
       //this records the number of times we have recorded
       Gcounter++;
 
@@ -250,6 +250,8 @@ void writeToLogger(int entryValue){
   if(entryValue != 0){ //when it's not the 1st one
     logger.print(", ");
   }
+      
+  
   logger.print('"');  
   logger.print(entryValue);   
   logger.print('"');
@@ -260,8 +262,13 @@ void writeToLogger(int entryValue){
   logger.print("time");
   logger.print('"');
   logger.print(':');  
-  logger.print(millis());  
-
+  int time = millis();
+  logger.print(time); 
+  
+  Serial.print("{");        
+  Serial.print("time:");        
+  Serial.print(time);          
+  Serial.print(",");      
 
 
 
@@ -269,6 +276,7 @@ void writeToLogger(int entryValue){
   //the second digit is what is used to determin the type of device, 4 or 14 or 24... = heart
   for(a = 0; a < maxDevice; ++ a){
     //going though the list 
+
     if(list[a] != 0 && inputValues[a] > 0){    
       logger.print(", ");    
       
@@ -276,20 +284,31 @@ void writeToLogger(int entryValue){
       //make the sensor number be between 0 and 10   
       byte sensor = shrink(list[a]);   
       //check for each case
+      if(a != 0){
+        Serial.print(",");                
+      }
       if(sensor == 4){
+        Serial.print("heart:");        
         logger.print("heart");   
       } 
       else if(sensor == 5){
+        Serial.print("breath:");        
         logger.print("breath");           
       } 
       else if(sensor == 6){
+        Serial.print("gsr:");        
         logger.print("gsr");
       }
       else if(sensor == 7){
+        Serial.print("temp:");                
         logger.print("temp");
       } else {
+        Serial.print("unkown:");                        
         logger.print("unkown");        
       }
+      
+      Serial.print(inputValues[a]);
+
       logger.print('"');
       logger.print(':');       
       logger.print(inputValues[a]);
@@ -299,12 +318,21 @@ void writeToLogger(int entryValue){
         }
       }      */
     }
+    
   }
 
   //when there is a gps attached and there is actual data it will do this
   if(gpsList[0] < 181 && gpsNew == true){
-    logger.print(',');             
-
+    logger.print(','); 
+    
+    Serial.print(",gps{lat:");        
+    Serial.print(gpsList[0]);        
+    Serial.print(",lon:");        
+    Serial.print(gpsList[1]);   
+    Serial.print(",alt:");        
+    Serial.print(gpsList[2]);   
+    Serial.print("}");
+    
     logger.print('"');
     logger.print("lat");  
     logger.print('"');
@@ -327,6 +355,9 @@ void writeToLogger(int entryValue){
 
     gpsNew = false;    
   } 
+  
+  Serial.println("}");        
+  
   logger.print(cbClose);
 }
 
@@ -355,12 +386,13 @@ static void gpsdump(TinyGPS &gps)
   gpsList[1] = flon;
   gpsList[2] = gps.f_altitude();
   
-  Serial.print("geting gps Data ");
-  Serial.print(gpsList[0],9);
-  Serial.print(" ");  
-  Serial.print(gpsList[1],9);
-  Serial.print(" ");    
-  Serial.println(gpsList[2],9);  
+//  Serial.print("gps:[ ");
+//  Serial.print(gpsList[0],9);
+//  Serial.print(",");  
+//  Serial.print(gpsList[1],9);
+//  Serial.print(",");    
+//  Serial.print(gpsList[2],9);  
+//  Serial.println("]");    
   
   gpsNew = true;
 }
